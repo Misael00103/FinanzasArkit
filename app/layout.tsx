@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   description:
     'Sistema personal de control de finanzas: deudas, pasivos, gastos hormiga, entradas, metas y asistente financiero.',
   generator: 'v0.app',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
 }
 
 export const viewport: Viewport = {
