@@ -45,43 +45,49 @@ export function SummaryCards({
       label: "Ingresos del mes",
       value: s.income,
       icon: TrendingUp,
-      tone: "text-primary",
-      bg: "bg-primary/10",
+      tone: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-500/10 border-emerald-500/20",
+      gradient: "from-emerald-500/5 via-transparent to-transparent",
     },
     {
       label: "Gastos del mes",
       value: s.expenses,
       icon: TrendingDown,
-      tone: "text-destructive",
-      bg: "bg-destructive/10",
+      tone: "text-rose-600 dark:text-rose-400",
+      bg: "bg-rose-500/10 border-rose-500/20",
+      gradient: "from-rose-500/5 via-transparent to-transparent",
     },
     {
       label: "Balance del mes",
       value: s.balance,
       icon: Scale,
-      tone: s.balance >= 0 ? "text-primary" : "text-destructive",
-      bg: s.balance >= 0 ? "bg-primary/10" : "bg-destructive/10",
+      tone: s.balance >= 0 ? "text-indigo-600 dark:text-indigo-400" : "text-rose-600 dark:text-rose-400",
+      bg: s.balance >= 0 ? "bg-indigo-500/10 border-indigo-500/20" : "bg-rose-500/10 border-rose-500/20",
+      gradient: s.balance >= 0 ? "from-indigo-500/5 via-transparent to-transparent" : "from-rose-500/5 via-transparent to-transparent",
     },
     {
       label: "Gastos hormiga",
       value: s.antExpenses,
       icon: Bug,
-      tone: "text-accent-foreground",
-      bg: "bg-accent/40",
+      tone: "text-amber-600 dark:text-amber-400",
+      bg: "bg-amber-500/10 border-amber-500/20",
+      gradient: "from-amber-500/5 via-transparent to-transparent",
     },
     {
       label: "Deuda total pendiente",
       value: deudaTotal,
       icon: CreditCard,
-      tone: "text-destructive",
-      bg: "bg-destructive/10",
+      tone: "text-orange-600 dark:text-orange-400",
+      bg: "bg-orange-500/10 border-orange-500/20",
+      gradient: "from-orange-500/5 via-transparent to-transparent",
     },
     {
       label: "Ahorro en metas",
       value: metaTotal,
       icon: PiggyBank,
-      tone: "text-primary",
-      bg: "bg-primary/10",
+      tone: "text-sky-600 dark:text-sky-400",
+      bg: "bg-sky-500/10 border-sky-500/20",
+      gradient: "from-sky-500/5 via-transparent to-transparent",
     },
   ]
 
@@ -102,17 +108,20 @@ export function SummaryCards({
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         {stats.map((stat) => (
-          <Card key={stat.label} className="overflow-hidden">
-            <CardContent className="flex items-start gap-3 p-4">
+          <Card key={stat.label} className="group relative overflow-hidden border border-border/60 bg-card/70 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-border/100 hover:shadow-md">
+            {/* Ambient Background Gradient */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient}`} />
+            
+            <CardContent className="relative z-10 flex items-start gap-3.5 p-4 sm:p-5">
               <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${stat.bg}`}
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${stat.bg} shadow-sm transition-all duration-300 group-hover:scale-110`}
               >
                 <stat.icon className={`h-5 w-5 ${stat.tone}`} />
               </div>
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium tracking-wide text-muted-foreground">{stat.label}</p>
                 <p
-                  className={`mt-0.5 truncate font-mono text-lg font-bold ${stat.tone}`}
+                  className={`mt-1 truncate font-display text-xl font-black tracking-tight ${stat.tone}`}
                 >
                   {formatMoney(stat.value, currency)}
                 </p>

@@ -164,3 +164,38 @@
     @apply bg-background text-foreground;
   }
 }
+
+@utility animate-blob {
+  animation: blob-float 16s ease-in-out infinite alternate;
+}
+
+@utility animate-blob-reverse {
+  animation: blob-float-reverse 24s ease-in-out infinite alternate;
+}
+
+@utility border-glass {
+  border: 1px solid oklch(1 0 0 / 12%);
+}
+
+@utility shadow-glass {
+  box-shadow: 0 8px 32px 0 oklch(0 0 0 / 10%);
+}
+
+@keyframes blob-float {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(50px, -70px) scale(1.2); }
+  66% { transform: translate(-30px, 30px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes blob-float-reverse {
+  0% { transform: translate(0px, 0px) scale(1.1); }
+  50% { transform: translate(-60px, 50px) scale(0.8); }
+  100% { transform: translate(0px, 0px) scale(1.1); }
+}
+
+.bg-grid-white {
+  background-image: radial-gradient(oklch(1 0 0 / 8%) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
