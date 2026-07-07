@@ -297,7 +297,7 @@ export function AssistantPanel({
     <div className="flex flex-col gap-6">
       {/* Configuration Box for Gemini API Key */}
       {showKeyInput && (
-        <Card className="border-primary/40 bg-primary/5">
+        <Card className="border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base text-primary">
               <Key className="h-4 w-4" />
@@ -328,18 +328,18 @@ export function AssistantPanel({
       )}
 
       <Tabs defaultValue="deudas" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-card p-1">
-          <TabsTrigger value="deudas" className="flex items-center gap-1.5 py-2">
+        <TabsList className="grid w-full grid-cols-3 bg-card/60 border border-border/50 p-1 shadow-sm rounded-xl backdrop-blur-md">
+          <TabsTrigger value="deudas" className="flex items-center gap-1.5 py-2 text-xs font-semibold rounded-lg transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm">
             <Calculator className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">Plan de Deudas</span>
             <span className="sm:hidden">Deudas</span>
           </TabsTrigger>
-          <TabsTrigger value="ahorros" className="flex items-center gap-1.5 py-2">
+          <TabsTrigger value="ahorros" className="flex items-center gap-1.5 py-2 text-xs font-semibold rounded-lg transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm">
             <Lightbulb className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">Ideas de Ahorro</span>
             <span className="sm:hidden">Ahorro</span>
           </TabsTrigger>
-          <TabsTrigger value="chat" className="flex items-center gap-1.5 py-2">
+          <TabsTrigger value="chat" className="flex items-center gap-1.5 py-2 text-xs font-semibold rounded-lg transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm">
             <MessageSquare className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">Asistente IA</span>
             <span className="sm:hidden">IA Chat</span>
@@ -783,8 +783,8 @@ export function AssistantPanel({
                         <div
                           className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                             isUser
-                              ? "bg-primary text-primary-foreground rounded-tr-none"
-                              : "bg-secondary text-secondary-foreground rounded-tl-none border border-border"
+                              ? "bg-primary text-primary-foreground shadow-sm rounded-tr-sm"
+                              : "bg-muted/80 backdrop-blur-sm border border-border/60 text-foreground shadow-sm rounded-tl-sm"
                           }`}
                         >
                           <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -794,7 +794,7 @@ export function AssistantPanel({
                   })}
                   {pending && (
                     <div className="flex justify-start">
-                      <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-tl-none border border-border px-4 py-3 text-sm flex items-center gap-2">
+                      <div className="bg-muted/80 backdrop-blur-sm border border-border/60 text-foreground shadow-sm rounded-2xl rounded-tl-sm px-4 py-3 text-sm flex items-center gap-2">
                         <div className="flex space-x-1">
                           <div className="h-2 w-2 rounded-full bg-muted-foreground/45 animate-bounce" style={{ animationDelay: "0ms" }} />
                           <div className="h-2 w-2 rounded-full bg-muted-foreground/45 animate-bounce" style={{ animationDelay: "150ms" }} />

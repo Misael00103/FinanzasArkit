@@ -200,11 +200,11 @@ function GoalCard({ goal, currency }: { goal: Goal; currency: string }) {
   }
 
   return (
-    <Card>
+    <Card className="border border-border/60 bg-card/75 border-l-4 border-l-emerald-500/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 backdrop-blur-md">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-base min-w-0">
-            <Target className="h-4 w-4 shrink-0 text-primary" />
+            <Target className="h-4 w-4 shrink-0 text-emerald-500" />
             <span className="truncate">{goal.name}</span>
           </CardTitle>
           <div className="flex items-center gap-1.5 shrink-0">
@@ -228,7 +228,7 @@ function GoalCard({ goal, currency }: { goal: Goal; currency: string }) {
         <div className="flex items-end justify-between gap-2">
           <div>
             <p className="text-xs text-muted-foreground">Ahorrado</p>
-            <p className="font-mono text-lg font-bold text-primary">
+            <p className="font-mono text-lg font-bold text-emerald-600 dark:text-emerald-400">
               {formatMoney(goal.savedAmount, goal.currency)}
             </p>
             {showConversion && (
@@ -255,10 +255,10 @@ function GoalCard({ goal, currency }: { goal: Goal; currency: string }) {
           <span>{pct.toFixed(0)}%</span>
         </div>
         {perMonth !== null && (
-          <p className="rounded-md bg-primary/10 px-2.5 py-1.5 text-xs text-primary leading-normal">
-            Ahorra {formatMoney(perMonth, goal.currency)} al mes
+          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed font-medium">
+            💡 Ahorro mensual sugerido: <span className="font-bold">{formatMoney(perMonth, goal.currency)}</span>
             {showConversion && ` (~ ${formatMoney(convertedPerMonth || 0, currency)}/mes)`} para lograrlo en {months} mes(es).
-          </p>
+          </div>
         )}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger render={

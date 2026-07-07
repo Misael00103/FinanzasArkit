@@ -78,13 +78,14 @@ export function DebtsPanel({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="rounded-xl border border-border bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">Total pendiente (en {currency})</p>
-          <p className="font-mono text-2xl font-bold text-destructive">
+        <div className="relative overflow-hidden rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-500/5 via-transparent to-transparent px-5 py-4 backdrop-blur shadow-sm">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-rose-500/10 blur-xl pointer-events-none" />
+          <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">Total pendiente ({currency})</p>
+          <p className="font-display text-3xl font-black tracking-tight text-rose-600 dark:text-rose-400 mt-1">
             {formatMoney(total, currency)}
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Pago mínimo mensual sumado: {formatMoney(totalMin, currency)}
+          <p className="mt-1 text-xs text-muted-foreground/80 font-medium">
+            Pago mínimo mensual sumado: <span className="font-semibold text-foreground">{formatMoney(totalMin, currency)}</span>
           </p>
         </div>
 
@@ -221,8 +222,10 @@ function DebtCard({ debt, currency }: { debt: Debt; currency: string }) {
     })
   }
 
+  const isPasivo = debt.type === "pasivo"
+
   return (
-    <Card>
+    <Card className={`border border-border/60 bg-card/75 border-l-4 ${isPasivo ? "border-l-orange-500/80" : "border-l-rose-500/80"} shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 backdrop-blur-md`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">

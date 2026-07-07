@@ -261,14 +261,14 @@ function RecurringCard({
   }
 
   return (
-    <Card className={item.active ? "" : "opacity-60"}>
+    <Card className={`border border-border/60 bg-card/75 border-l-4 ${isIncome ? "border-l-emerald-500/80" : "border-l-rose-500/80"} shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 backdrop-blur-md ${item.active ? "" : "opacity-60"}`}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             {isIncome ? (
-              <ArrowUpRight className="h-4 w-4 shrink-0 text-primary" />
+              <ArrowUpRight className="h-4 w-4 shrink-0 text-emerald-500" />
             ) : (
-              <ArrowDownRight className="h-4 w-4 shrink-0 text-destructive" />
+              <ArrowDownRight className="h-4 w-4 shrink-0 text-rose-500" />
             )}
             <span className="truncate">{item.description}</span>
           </CardTitle>
@@ -286,7 +286,7 @@ function RecurringCard({
         <div>
           <p
             className={`font-mono text-lg font-bold ${
-              isIncome ? "text-primary" : "text-destructive"
+              isIncome ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
             }`}
           >
             {formatMoney(item.amount, item.currency)}

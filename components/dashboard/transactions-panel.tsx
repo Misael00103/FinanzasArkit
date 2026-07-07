@@ -61,6 +61,18 @@ export function TransactionsPanel({
   const selectedCat = CATEGORIES.find((c) => c.value === category)
   const isIncome = selectedCat?.type === "income"
 
+  // Group transactions by date
+  const groupedTransactions = transactions.reduce((acc, tx) => {
+    const dateStr = new Date(tx.occurredAt).toLocaleDateString("es-DO", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    })
+    if (!acc[dateStr]) acc[dateStr] = []
+    acc[dateStr].push(tx)
+    return acc
+  }, {} as Record<string, Transaction[]>)
+
   function handleCreate(formData: FormData) {
     const description = String(formData.get("description") || "").trim()
     const amount = Number(formData.get("amount") || 0)
@@ -89,9 +101,10 @@ export function TransactionsPanel({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          {transactions.length} movimiento(s) registrados
-        </p>
+        <h3 className="font-display font-bold text-lg text-foreground">
+          Historial de Movimientos
+          <span className="ml-2 text-xs font-normal text-muted-foreground">({transactions.length})</span>
+        </h3>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger render={
             <Button>
@@ -187,9 +200,18 @@ export function TransactionsPanel({
           </CardContent>
         </Card>
       ) : (
-        <div className="flex flex-col gap-2">
-          {transactions.map((t) => (
-            <TxRow key={t.id} tx={t} currency={currency} />
+        <div className="flex flex-col gap-4">
+          {Object.entries(groupedTransactions).map(([dateStr, txs]) => (
+            <div key={dateStr} className="space-y-2">
+              <h4 className="text-xs font-bold text-muted-foreground/80 tracking-wider uppercase pl-1">
+                {dateStr}
+              </h4>
+              <div className="flex flex-col gap-2">
+                {txs.map((t) => (
+                  <TxRow key={t.id} tx={t} currency={currency} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -209,19 +231,19 @@ function TxRow({ tx, currency }: { tx: Transaction; currency: string }) {
   }
 
   return (
-    <Card>
+    <Card className="border border-border/60 bg-card/60 hover:bg-card/90 transition-all duration-200 shadow-sm rounded-xl">
       <CardContent className="flex items-center gap-3 p-3">
         <div
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-            isIncome ? "bg-primary/10" : tx.isAnt ? "bg-accent/40" : "bg-destructive/10"
+            isIncome ? "bg-emerald-500/10" : tx.isAnt ? "bg-amber-500/10" : "bg-rose-500/10"
           }`}
         >
           {isIncome ? (
-            <ArrowUpRight className="h-4 w-4 text-primary" />
+            <ArrowUpRight className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           ) : tx.isAnt ? (
-            <Bug className="h-4 w-4 text-accent-foreground" />
+            <Bug className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           ) : (
-            <ArrowDownRight className="h-4 w-4 text-destructive" />
+            <ArrowDownRight className="h-4 w-4 text-rose-600 dark:text-rose-400" />
           )}
         </div>
         <div className="min-w-0 flex-1">
@@ -236,18 +258,13 @@ function TxRow({ tx, currency }: { tx: Transaction; currency: string }) {
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            {new Date(tx.occurredAt).toLocaleDateString("es-DO", {
-              day: "2-digit",
-              month: "short",
-            })}
-            {tx.business ? ` · ${tx.business}` : ""} ·{" "}
-            {tx.category.replace(/_/g, " ")}
+            {tx.business ? `${tx.business} · ` : ""}{tx.category.replace(/_/g, " ")}
           </p>
         </div>
         <div className="text-right shrink-0">
           <p
             className={`font-mono text-sm font-bold ${
-              isIncome ? "text-primary" : "text-destructive"
+              isIncome ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
             }`}
           >
             {isIncome ? "+" : "-"}

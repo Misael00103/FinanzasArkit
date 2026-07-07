@@ -54,7 +54,12 @@ export function Dashboard({
   const [currency, setCurrency] = useState(settings.displayCurrency)
 
   return (
-    <div className="min-h-svh bg-secondary/30">
+    <div className="relative min-h-svh bg-background/95 overflow-hidden">
+      {/* Ambient background glow elements for premium look */}
+      <div className="absolute top-10 left-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 h-96 w-96 rounded-full bg-accent/5 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/3 h-80 w-80 rounded-full bg-indigo-500/[0.03] blur-3xl pointer-events-none" />
+
       <DashboardHeader
         userName={userName}
         currency={currency}
@@ -64,12 +69,12 @@ export function Dashboard({
       <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6">
         <Tabs defaultValue="resumen" className="w-full">
           <div className="-mx-4 mb-6 overflow-x-auto px-4 no-scrollbar">
-            <TabsList className="inline-flex h-auto w-auto justify-start gap-1 bg-card p-1">
+            <TabsList className="inline-flex h-auto w-auto justify-start gap-1 bg-card/60 border border-border/50 p-1 shadow-sm rounded-xl backdrop-blur-md">
               {TABS.map((t) => (
                 <TabsTrigger
                   key={t.value}
                   value={t.value}
-                  className="flex items-center gap-1.5 whitespace-nowrap px-3 py-2 text-sm"
+                  className="flex items-center gap-1.5 whitespace-nowrap px-4 py-2 text-sm rounded-lg font-medium transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
                 >
                   <t.icon className="h-4 w-4" />
                   {t.label}
