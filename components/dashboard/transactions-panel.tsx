@@ -123,8 +123,8 @@ export function TransactionsPanel({
                 <Label htmlFor="description">Descripcion *</Label>
                 <Input id="description" name="description" placeholder="Ej. Cafe, salario, venta..." required />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="flex flex-col gap-2 col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex flex-col gap-2 col-span-1 sm:col-span-2">
                   <Label htmlFor="amount">Monto *</Label>
                   <Input id="amount" name="amount" type="number" step="0.01" min="0" required />
                 </div>

@@ -104,7 +104,7 @@ export function DebtsPanel({
                 <Label htmlFor="name">Nombre *</Label>
                 <Input id="name" name="name" placeholder="Ej. Tarjeta de credito" required />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="creditor">Acreedor</Label>
                   <Input id="creditor" name="creditor" placeholder="Banco / persona" />
@@ -122,8 +122,8 @@ export function DebtsPanel({
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="flex flex-col gap-2 col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex flex-col gap-2 col-span-1 sm:col-span-2">
                   <Label htmlFor="totalAmount">Monto total *</Label>
                   <Input id="totalAmount" name="totalAmount" type="number" step="0.01" min="0" defaultValue="0" required />
                 </div>
@@ -143,7 +143,7 @@ export function DebtsPanel({
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="paidAmount">Ya pagado</Label>
                   <Input id="paidAmount" name="paidAmount" type="number" step="0.01" min="0" defaultValue="0" />
@@ -153,7 +153,7 @@ export function DebtsPanel({
                   <Input id="interestRate" name="interestRate" type="number" step="0.01" min="0" defaultValue="0" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="minimumPayment">Pago mínimo</Label>
                   <Input id="minimumPayment" name="minimumPayment" type="number" step="0.01" min="0" defaultValue="0" />

@@ -97,7 +97,7 @@ export function RecurringPanel({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Card>
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Entradas fijas / mes (en {currency})</p>
@@ -156,8 +156,8 @@ export function RecurringPanel({
                 <Label htmlFor="description">Descripcion *</Label>
                 <Input id="description" name="description" placeholder="Ej. Renta, salario, Netflix..." required />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="flex flex-col gap-2 col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex flex-col gap-2 col-span-1 sm:col-span-2">
                   <Label htmlFor="amount">Monto *</Label>
                   <Input id="amount" name="amount" type="number" step="0.01" min="0" required />
                 </div>
@@ -177,7 +177,7 @@ export function RecurringPanel({
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="frequency">Frecuencia</Label>
                   <Select value={frequency} onValueChange={(val) => setFrequency(val || "mensual")}>

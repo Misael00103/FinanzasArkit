@@ -106,7 +106,7 @@ export function SummaryCards({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {stats.map((stat) => (
           <Card key={stat.label} className="group relative overflow-hidden border border-border/60 bg-card/70 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-border/100 hover:shadow-md">
             {/* Ambient Background Gradient */}

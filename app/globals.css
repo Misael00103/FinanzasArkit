@@ -199,3 +199,13 @@
   background-size: 24px 24px;
 }
 
+/* Hide scrollbars for neat mobile horizontal lists */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+

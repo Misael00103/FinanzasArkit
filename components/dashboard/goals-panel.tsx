@@ -96,8 +96,8 @@ export function GoalsPanel({
                 <Label htmlFor="name">Nombre de la meta *</Label>
                 <Input id="name" name="name" placeholder="Ej. Carro, viaje, fondo de emergencia" required />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="flex flex-col gap-2 col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex flex-col gap-2 col-span-1 sm:col-span-2">
                   <Label htmlFor="targetAmount">Precio / objetivo *</Label>
                   <Input id="targetAmount" name="targetAmount" type="number" step="0.01" min="0" required />
                 </div>

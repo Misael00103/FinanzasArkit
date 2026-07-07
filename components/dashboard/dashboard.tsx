@@ -63,7 +63,7 @@ export function Dashboard({
 
       <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6">
         <Tabs defaultValue="resumen" className="w-full">
-          <div className="-mx-4 mb-6 overflow-x-auto px-4">
+          <div className="-mx-4 mb-6 overflow-x-auto px-4 no-scrollbar">
             <TabsList className="inline-flex h-auto w-auto justify-start gap-1 bg-card p-1">
               {TABS.map((t) => (
                 <TabsTrigger
