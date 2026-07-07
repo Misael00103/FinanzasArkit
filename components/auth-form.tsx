@@ -55,8 +55,12 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   return (
     <div className="w-full max-w-md">
       <div className="mb-8 flex flex-col items-center text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-          <Wallet className="h-7 w-7" />
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden bg-secondary/50 p-1">
+          <img
+            src="/logo-nuevo-removebg-preview.png"
+            alt="Logo"
+            className="h-12 w-12 object-contain"
+          />
         </div>
         <h1 className="font-display text-2xl font-bold text-foreground">
           {isSignUp ? "Crear tu cuenta" : "Control de Gastos"}

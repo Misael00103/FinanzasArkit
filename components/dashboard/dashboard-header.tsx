@@ -50,8 +50,12 @@ export function DashboardHeader({
     <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Wallet className="h-5 w-5" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden bg-secondary/50">
+            <img
+              src="/logo-nuevo-removebg-preview.png"
+              alt="Logo"
+              className="h-8 w-8 object-contain"
+            />
           </div>
           <div className="leading-tight">
             <p className="font-display text-base font-bold text-foreground">
