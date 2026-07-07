@@ -11,6 +11,7 @@
   "dependencies": {
     "@base-ui/react": "^1.5.0",
     "@neondatabase/serverless": "^1.1.0",
+    "@opentelemetry/api": "^1.9.1",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.1",
     "@vercel/analytics": "1.6.1",
@@ -46,5 +47,6 @@
     "overrides": {
       "hono": "4.12.25"
     }
-  }
+  },
+  "packageManager": "pnpm@10.6.5+sha512.cdf928fca20832cd59ec53826492b7dc25dc524d4370b6b4adbf65803d32efaa6c1c88147c0ae4e8d579a6c9eec715757b50d4fa35eea179d868eada4ed043af"
 }
