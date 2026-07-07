@@ -1,9 +1,8 @@
 "use server"
 
-import { db } from "@/lib/db"
-import { recurring } from "@/lib/db/schema"
+import { createClient } from "@/utils/supabase/server"
+import { cookies } from "next/headers"
 import { getUserId } from "@/lib/session"
-import { and, desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
 export type RecurringInput = {
@@ -18,18 +17,23 @@ export type RecurringInput = {
 }
 
 export async function getRecurring() {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  const rows = await db
-    .select()
-    .from(recurring)
-    .where(eq(recurring.userId, userId))
-    .orderBy(desc(recurring.createdAt))
-  return rows.map((r) => ({ ...r, amount: Number(r.amount) }))
+  const { data, error } = await supabase
+    .from("recurring")
+    .select("*")
+    .eq("userId", userId)
+    .order("createdAt", { ascending: false })
+  if (error) throw error
+  return (data || []).map((r) => ({ ...r, amount: Number(r.amount) }))
 }
 
 export async function createRecurring(input: RecurringInput) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  await db.insert(recurring).values({
+  const { error } = await supabase.from("recurring").insert({
     userId,
     direction: input.direction,
     description: input.description,
@@ -40,22 +44,32 @@ export async function createRecurring(input: RecurringInput) {
     dayOfMonth: input.dayOfMonth ?? null,
     active: input.active ?? true,
   })
+  if (error) throw error
   revalidatePath("/")
 }
 
 export async function toggleRecurring(id: number, active: boolean) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  await db
-    .update(recurring)
-    .set({ active })
-    .where(and(eq(recurring.id, id), eq(recurring.userId, userId)))
+  const { error } = await supabase
+    .from("recurring")
+    .update({ active })
+    .eq("id", id)
+    .eq("userId", userId)
+  if (error) throw error
   revalidatePath("/")
 }
 
 export async function deleteRecurring(id: number) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  await db
-    .delete(recurring)
-    .where(and(eq(recurring.id, id), eq(recurring.userId, userId)))
+  const { error } = await supabase
+    .from("recurring")
+    .delete()
+    .eq("id", id)
+    .eq("userId", userId)
+  if (error) throw error
   revalidatePath("/")
 }

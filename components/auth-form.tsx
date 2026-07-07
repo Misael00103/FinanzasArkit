@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { signIn, signUp } from "@/lib/auth-client"
+import { createClient } from "@/utils/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,6 +11,7 @@ import { Wallet, Loader2 } from "lucide-react"
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const router = useRouter()
+  const supabase = createClient()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
@@ -25,14 +26,21 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     setLoading(true)
     try {
       if (isSignUp) {
-        const { error } = await signUp.email({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
-          name: name || "Misael",
+          options: {
+            data: {
+              name: name || "Misael",
+            },
+          },
         })
         if (error) throw new Error(error.message || "No se pudo crear la cuenta")
       } else {
-        const { error } = await signIn.email({ email, password })
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
         if (error) throw new Error(error.message || "Credenciales incorrectas")
       }
       router.push("/")

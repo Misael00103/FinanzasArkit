@@ -1,9 +1,8 @@
 "use server"
 
-import { db } from "@/lib/db"
-import { goals } from "@/lib/db/schema"
+import { createClient } from "@/utils/supabase/server"
+import { cookies } from "next/headers"
 import { getUserId } from "@/lib/session"
-import { and, desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
 export type GoalInput = {
@@ -16,13 +15,16 @@ export type GoalInput = {
 }
 
 export async function getGoals() {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  const rows = await db
-    .select()
-    .from(goals)
-    .where(eq(goals.userId, userId))
-    .orderBy(desc(goals.createdAt))
-  return rows.map((g) => ({
+  const { data, error } = await supabase
+    .from("goals")
+    .select("*")
+    .eq("userId", userId)
+    .order("createdAt", { ascending: false })
+  if (error) throw error
+  return (data || []).map((g) => ({
     ...g,
     targetAmount: Number(g.targetAmount),
     savedAmount: Number(g.savedAmount),
@@ -30,8 +32,10 @@ export async function getGoals() {
 }
 
 export async function createGoal(input: GoalInput) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  await db.insert(goals).values({
+  const { error } = await supabase.from("goals").insert({
     userId,
     name: input.name,
     targetAmount: String(input.targetAmount ?? 0),
@@ -40,26 +44,40 @@ export async function createGoal(input: GoalInput) {
     targetDate: input.targetDate || null,
     notes: input.notes || null,
   })
+  if (error) throw error
   revalidatePath("/")
 }
 
 export async function addToGoal(id: number, amount: number) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  const [row] = await db
-    .select()
-    .from(goals)
-    .where(and(eq(goals.id, id), eq(goals.userId, userId)))
-  if (!row) throw new Error("Meta no encontrada")
+  const { data: row, error: selectError } = await supabase
+    .from("goals")
+    .select("*")
+    .eq("id", id)
+    .eq("userId", userId)
+    .single()
+  if (selectError || !row) throw new Error("Meta no encontrada")
   const newSaved = Number(row.savedAmount) + amount
-  await db
-    .update(goals)
-    .set({ savedAmount: String(newSaved) })
-    .where(and(eq(goals.id, id), eq(goals.userId, userId)))
+  const { error: updateError } = await supabase
+    .from("goals")
+    .update({ savedAmount: String(newSaved) })
+    .eq("id", id)
+    .eq("userId", userId)
+  if (updateError) throw updateError
   revalidatePath("/")
 }
 
 export async function deleteGoal(id: number) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  await db.delete(goals).where(and(eq(goals.id, id), eq(goals.userId, userId)))
+  const { error } = await supabase
+    .from("goals")
+    .delete()
+    .eq("id", id)
+    .eq("userId", userId)
+  if (error) throw error
   revalidatePath("/")
 }

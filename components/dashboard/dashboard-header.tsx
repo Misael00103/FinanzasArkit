@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { signOut } from "@/lib/auth-client"
+import { createClient } from "@/utils/supabase/client"
 import { saveSettings } from "@/app/actions/settings"
 import { CURRENCIES, type CurrencyCode } from "@/lib/config"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,7 @@ export function DashboardHeader({
   onCurrencyChange: (c: string) => void
 }) {
   const router = useRouter()
+  const supabase = createClient()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
@@ -40,7 +41,7 @@ export function DashboardHeader({
   }
 
   async function handleLogout() {
-    await signOut()
+    await supabase.auth.signOut()
     router.push("/sign-in")
     router.refresh()
   }

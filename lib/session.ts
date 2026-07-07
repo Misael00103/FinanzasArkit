@@ -1,12 +1,24 @@
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 
 export async function getUserId() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) throw new Error("Unauthorized")
-  return session.user.id
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) throw new Error("Unauthorized");
+  return user.id;
 }
 
 export async function getSession() {
-  return auth.api.getSession({ headers: await headers() })
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error || !session) return null;
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      name: session.user.user_metadata?.name || session.user.email?.split("@")[0] || "Misael",
+    },
+  };
 }

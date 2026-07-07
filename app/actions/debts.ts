@@ -1,9 +1,8 @@
 "use server"
 
-import { db } from "@/lib/db"
-import { debts } from "@/lib/db/schema"
+import { createClient } from "@/utils/supabase/server"
+import { cookies } from "next/headers"
 import { getUserId } from "@/lib/session"
-import { and, desc, eq } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
 export type DebtInput = {
@@ -20,13 +19,16 @@ export type DebtInput = {
 }
 
 export async function getDebts() {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  const rows = await db
-    .select()
-    .from(debts)
-    .where(eq(debts.userId, userId))
-    .orderBy(desc(debts.createdAt))
-  return rows.map((d) => ({
+  const { data, error } = await supabase
+    .from("debts")
+    .select("*")
+    .eq("userId", userId)
+    .order("createdAt", { ascending: false })
+  if (error) throw error
+  return (data || []).map((d) => ({
     ...d,
     totalAmount: Number(d.totalAmount),
     paidAmount: Number(d.paidAmount),
@@ -36,8 +38,10 @@ export async function getDebts() {
 }
 
 export async function createDebt(input: DebtInput) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  await db.insert(debts).values({
+  const { error } = await supabase.from("debts").insert({
     userId,
     name: input.name,
     creditor: input.creditor || null,
@@ -50,10 +54,13 @@ export async function createDebt(input: DebtInput) {
     currency: input.currency || "DOP",
     notes: input.notes || null,
   })
+  if (error) throw error
   revalidatePath("/")
 }
 
 export async function updateDebt(id: number, input: Partial<DebtInput>) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
   const values: Record<string, unknown> = {}
   if (input.name !== undefined) values.name = input.name
@@ -66,30 +73,46 @@ export async function updateDebt(id: number, input: Partial<DebtInput>) {
   if (input.dueDay !== undefined) values.dueDay = input.dueDay
   if (input.currency !== undefined) values.currency = input.currency
   if (input.notes !== undefined) values.notes = input.notes || null
-  await db
-    .update(debts)
-    .set(values)
-    .where(and(eq(debts.id, id), eq(debts.userId, userId)))
+
+  const { error } = await supabase
+    .from("debts")
+    .update(values)
+    .eq("id", id)
+    .eq("userId", userId)
+  if (error) throw error
   revalidatePath("/")
 }
 
 export async function registerDebtPayment(id: number, amount: number) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  const [row] = await db
-    .select()
-    .from(debts)
-    .where(and(eq(debts.id, id), eq(debts.userId, userId)))
-  if (!row) throw new Error("Deuda no encontrada")
+  const { data: row, error: selectError } = await supabase
+    .from("debts")
+    .select("*")
+    .eq("id", id)
+    .eq("userId", userId)
+    .single()
+  if (selectError || !row) throw new Error("Deuda no encontrada")
   const newPaid = Number(row.paidAmount) + amount
-  await db
-    .update(debts)
-    .set({ paidAmount: String(newPaid) })
-    .where(and(eq(debts.id, id), eq(debts.userId, userId)))
+  const { error: updateError } = await supabase
+    .from("debts")
+    .update({ paidAmount: String(newPaid) })
+    .eq("id", id)
+    .eq("userId", userId)
+  if (updateError) throw updateError
   revalidatePath("/")
 }
 
 export async function deleteDebt(id: number) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
   const userId = await getUserId()
-  await db.delete(debts).where(and(eq(debts.id, id), eq(debts.userId, userId)))
+  const { error } = await supabase
+    .from("debts")
+    .delete()
+    .eq("id", id)
+    .eq("userId", userId)
+  if (error) throw error
   revalidatePath("/")
 }
