@@ -14,11 +14,16 @@ export async function getSession() {
   const supabase = createClient(cookieStore);
   const { data: { session }, error } = await supabase.auth.getSession();
   if (error || !session) return null;
+  const metadata = session.user.user_metadata || {};
   return {
     ...session,
     user: {
       ...session.user,
-      name: session.user.user_metadata?.name || session.user.email?.split("@")[0] || "Misael",
+      name: metadata.name || session.user.email?.split("@")[0] || "Misael",
+      avatarColor: metadata.avatarColor || "primary",
+      payDay: metadata.payDay || 15,
+      phone: metadata.phone || "",
+      notificationsEnabled: metadata.notificationsEnabled ?? true,
     },
   };
 }

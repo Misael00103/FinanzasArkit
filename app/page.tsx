@@ -24,6 +24,10 @@ export default async function HomePage() {
     email: session.user.email || "",
     name: session.user.name || "Misael",
     createdAt: session.user.created_at,
+    avatarColor: session.user.avatarColor,
+    payDay: session.user.payDay,
+    phone: session.user.phone,
+    notificationsEnabled: session.user.notificationsEnabled,
   }
 
   return (

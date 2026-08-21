@@ -60,6 +60,10 @@ export type UserProfile = {
   email: string
   name: string
   createdAt?: string
+  avatarColor?: string
+  payDay?: number
+  phone?: string
+  notificationsEnabled?: boolean
 }
 
 // Tasas de cambio fijas respecto a 1 USD (como base de referencia)
