@@ -61,6 +61,29 @@ export async function toggleRecurring(id: number, active: boolean) {
   revalidatePath("/")
 }
 
+export async function updateRecurring(id: number, input: Partial<RecurringInput>) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
+  const userId = await getUserId()
+  const values: Record<string, unknown> = {}
+  if (input.direction !== undefined) values.direction = input.direction
+  if (input.description !== undefined) values.description = input.description
+  if (input.category !== undefined) values.category = input.category
+  if (input.amount !== undefined) values.amount = String(input.amount)
+  if (input.currency !== undefined) values.currency = input.currency
+  if (input.frequency !== undefined) values.frequency = input.frequency
+  if (input.dayOfMonth !== undefined) values.dayOfMonth = input.dayOfMonth
+  if (input.active !== undefined) values.active = input.active
+
+  const { error } = await supabase
+    .from("recurring")
+    .update(values)
+    .eq("id", id)
+    .eq("userId", userId)
+  if (error) throw error
+  revalidatePath("/")
+}
+
 export async function deleteRecurring(id: number) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)

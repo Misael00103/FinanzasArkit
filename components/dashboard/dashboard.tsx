@@ -9,7 +9,6 @@ import { TransactionsPanel } from "@/components/dashboard/transactions-panel"
 import { RecurringPanel } from "@/components/dashboard/recurring-panel"
 import { GoalsPanel } from "@/components/dashboard/goals-panel"
 import { AssistantPanel } from "@/components/dashboard/assistant-panel"
-import { ProfilePanel } from "@/components/dashboard/profile-panel"
 import type {
   Debt,
   Transaction,
@@ -25,7 +24,6 @@ import {
   CalendarClock,
   Target,
   Sparkles,
-  User,
 } from "lucide-react"
 
 type Props = {
@@ -45,7 +43,6 @@ const TABS = [
   { value: "fijos", label: "Fijos", icon: CalendarClock },
   { value: "metas", label: "Metas", icon: Target },
   { value: "asistente", label: "Asistente", icon: Sparkles },
-  { value: "perfil", label: "Perfil", icon: User },
 ]
 
 export function Dashboard({
@@ -58,7 +55,6 @@ export function Dashboard({
   settings,
 }: Props) {
   const [currency, setCurrency] = useState(settings.displayCurrency)
-  const [activeTab, setActiveTab] = useState("resumen")
 
   const userProfile: UserProfile = user || {
     id: "user-id",
@@ -77,12 +73,16 @@ export function Dashboard({
         userName={userProfile.name}
         userEmail={userProfile.email}
         currency={currency}
+        user={userProfile}
+        settings={settings}
+        debtsCount={debts.length}
+        transactionsCount={transactions.length}
+        goalsCount={goals.length}
         onCurrencyChange={setCurrency}
-        onOpenProfile={() => setActiveTab("perfil")}
       />
 
       <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="resumen" className="w-full">
           <div className="-mx-4 mb-6 overflow-x-auto px-4 no-scrollbar">
             <TabsList className="inline-flex h-auto w-auto justify-start gap-1 bg-card/60 border border-border/50 p-1 shadow-sm rounded-xl backdrop-blur-md">
               {TABS.map((t) => (
@@ -134,17 +134,6 @@ export function Dashboard({
               recurring={recurring}
               goals={goals}
               currency={currency}
-            />
-          </TabsContent>
-
-          <TabsContent value="perfil" className="mt-0">
-            <ProfilePanel
-              user={userProfile}
-              settings={settings}
-              debtsCount={debts.length}
-              transactionsCount={transactions.length}
-              goalsCount={goals.length}
-              onCurrencyChange={setCurrency}
             />
           </TabsContent>
         </Tabs>

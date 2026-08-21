@@ -69,6 +69,27 @@ export async function addToGoal(id: number, amount: number) {
   revalidatePath("/")
 }
 
+export async function updateGoal(id: number, input: Partial<GoalInput>) {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
+  const userId = await getUserId()
+  const values: Record<string, unknown> = {}
+  if (input.name !== undefined) values.name = input.name
+  if (input.targetAmount !== undefined) values.targetAmount = String(input.targetAmount)
+  if (input.savedAmount !== undefined) values.savedAmount = String(input.savedAmount)
+  if (input.currency !== undefined) values.currency = input.currency
+  if (input.targetDate !== undefined) values.targetDate = input.targetDate || null
+  if (input.notes !== undefined) values.notes = input.notes || null
+
+  const { error } = await supabase
+    .from("goals")
+    .update(values)
+    .eq("id", id)
+    .eq("userId", userId)
+  if (error) throw error
+  revalidatePath("/")
+}
+
 export async function deleteGoal(id: number) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
