@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "name": "Figma Component Code Connect",
+  "description": "Check if UI component should be connected to Figma design",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["components/**/*.tsx", "components/**/*.jsx", "app/**/*.tsx"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A component file was just edited. Ask the user if they would like to check if this code component should be connected to a Figma component. If they approve: ask them to provide the Figma URL if not already available in context. Then run get_code_connect_map for that URL. If the response is empty or doesn't include the edited component, suggest running add_code_connect_map to create the mapping. If a mapping already exists, inform the user."
+  },
+  "shortName": "figma-code-connect"
+}

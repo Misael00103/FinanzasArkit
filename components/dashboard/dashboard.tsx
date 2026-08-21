@@ -9,12 +9,14 @@ import { TransactionsPanel } from "@/components/dashboard/transactions-panel"
 import { RecurringPanel } from "@/components/dashboard/recurring-panel"
 import { GoalsPanel } from "@/components/dashboard/goals-panel"
 import { AssistantPanel } from "@/components/dashboard/assistant-panel"
+import { ProfilePanel } from "@/components/dashboard/profile-panel"
 import type {
   Debt,
   Transaction,
   Recurring,
   Goal,
   Settings,
+  UserProfile,
 } from "@/lib/finance"
 import {
   LayoutDashboard,
@@ -23,10 +25,12 @@ import {
   CalendarClock,
   Target,
   Sparkles,
+  User,
 } from "lucide-react"
 
 type Props = {
   userName: string
+  user?: UserProfile
   debts: Debt[]
   transactions: Transaction[]
   recurring: Recurring[]
@@ -41,10 +45,12 @@ const TABS = [
   { value: "fijos", label: "Fijos", icon: CalendarClock },
   { value: "metas", label: "Metas", icon: Target },
   { value: "asistente", label: "Asistente", icon: Sparkles },
+  { value: "perfil", label: "Perfil", icon: User },
 ]
 
 export function Dashboard({
   userName,
+  user,
   debts,
   transactions,
   recurring,
@@ -52,6 +58,13 @@ export function Dashboard({
   settings,
 }: Props) {
   const [currency, setCurrency] = useState(settings.displayCurrency)
+  const [activeTab, setActiveTab] = useState("resumen")
+
+  const userProfile: UserProfile = user || {
+    id: "user-id",
+    email: "usuario@ejemplo.com",
+    name: userName || "Misael",
+  }
 
   return (
     <div className="relative min-h-svh bg-background/95 overflow-hidden">
@@ -61,13 +74,15 @@ export function Dashboard({
       <div className="absolute top-1/2 left-1/3 h-80 w-80 rounded-full bg-indigo-500/[0.03] blur-3xl pointer-events-none" />
 
       <DashboardHeader
-        userName={userName}
+        userName={userProfile.name}
+        userEmail={userProfile.email}
         currency={currency}
         onCurrencyChange={setCurrency}
+        onOpenProfile={() => setActiveTab("perfil")}
       />
 
       <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6">
-        <Tabs defaultValue="resumen" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="-mx-4 mb-6 overflow-x-auto px-4 no-scrollbar">
             <TabsList className="inline-flex h-auto w-auto justify-start gap-1 bg-card/60 border border-border/50 p-1 shadow-sm rounded-xl backdrop-blur-md">
               {TABS.map((t) => (
@@ -119,6 +134,17 @@ export function Dashboard({
               recurring={recurring}
               goals={goals}
               currency={currency}
+            />
+          </TabsContent>
+
+          <TabsContent value="perfil" className="mt-0">
+            <ProfilePanel
+              user={userProfile}
+              settings={settings}
+              debtsCount={debts.length}
+              transactionsCount={transactions.length}
+              goalsCount={goals.length}
+              onCurrencyChange={setCurrency}
             />
           </TabsContent>
         </Tabs>

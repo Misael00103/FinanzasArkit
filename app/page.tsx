@@ -19,9 +19,17 @@ export default async function HomePage() {
     getSettings(),
   ])
 
+  const userProfile = {
+    id: session.user.id,
+    email: session.user.email || "",
+    name: session.user.name || "Misael",
+    createdAt: session.user.created_at,
+  }
+
   return (
     <Dashboard
-      userName={session.user.name || "Misael"}
+      userName={userProfile.name}
+      user={userProfile}
       debts={debts}
       transactions={transactions}
       recurring={recurring}

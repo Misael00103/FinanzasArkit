@@ -55,6 +55,13 @@ export type Settings = {
   monthlyIncome: number
 }
 
+export type UserProfile = {
+  id: string
+  email: string
+  name: string
+  createdAt?: string
+}
+
 // Tasas de cambio fijas respecto a 1 USD (como base de referencia)
 export const EXCHANGE_RATES: Record<string, number> = {
   USD: 1.0,
@@ -63,6 +70,7 @@ export const EXCHANGE_RATES: Record<string, number> = {
   MXN: 17.5,
   COP: 4000.0,
   ARS: 950.0,
+  CAD: 1.36,
 }
 
 export function convertCurrency(amount: number, from: string, to: string): number {
