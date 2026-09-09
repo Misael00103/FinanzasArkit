@@ -186,3 +186,138 @@ export function totalBankBalance(
   )
 }
 
+export type DateRangePreset = "este_mes" | "30_dias" | "este_ano" | "todo" | "custom"
+
+export function filterTransactionsByDateRange(
+  transactions: Transaction[],
+  preset: DateRangePreset,
+  customStart?: string,
+  customEnd?: string
+): Transaction[] {
+  const now = new Date()
+
+  return transactions.filter((t) => {
+    const txDate = new Date(t.occurredAt)
+    if (isNaN(txDate.getTime())) return true
+
+    if (preset === "este_mes") {
+      return (
+        txDate.getFullYear() === now.getFullYear() &&
+        txDate.getMonth() === now.getMonth()
+      )
+    }
+
+    if (preset === "30_dias") {
+      const thirtyDaysAgo = new Date(now)
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      return txDate >= thirtyDaysAgo && txDate <= now
+    }
+
+    if (preset === "este_ano") {
+      return txDate.getFullYear() === now.getFullYear()
+    }
+
+    if (preset === "custom") {
+      if (customStart && customEnd) {
+        const start = new Date(customStart)
+        start.setHours(0, 0, 0, 0)
+        const end = new Date(customEnd)
+        end.setHours(23, 59, 59, 999)
+        return txDate >= start && txDate <= end
+      }
+      if (customStart) {
+        const start = new Date(customStart)
+        start.setHours(0, 0, 0, 0)
+        return txDate >= start
+      }
+      if (customEnd) {
+        const end = new Date(customEnd)
+        end.setHours(23, 59, 59, 999)
+        return txDate <= end
+      }
+    }
+
+    // "todo"
+    return true
+  })
+}
+
+export function getCategoryBreakdown(
+  transactions: Transaction[],
+  targetCurrency: string = "DOP"
+) {
+  // Excluir transferencias internas de los gastos de consumo real
+  const expenseTxs = transactions.filter(
+    (t) => t.type === "expense" && t.category !== "transferencia"
+  )
+
+  const totalsByCategory: Record<string, number> = {}
+  let totalExpenses = 0
+
+  for (const t of expenseTxs) {
+    const converted = convertCurrency(t.amount, t.currency, targetCurrency)
+    const cat = t.category || "general"
+    totalsByCategory[cat] = (totalsByCategory[cat] || 0) + converted
+    totalExpenses += converted
+  }
+
+  const breakdown = Object.entries(totalsByCategory)
+    .map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0,
+    }))
+    .sort((a, b) => b.amount - a.amount)
+
+  return {
+    breakdown,
+    totalExpenses,
+  }
+}
+
+export function getNetWorth(
+  bankAccounts: BankAccount[],
+  debts: Debt[],
+  targetCurrency: string = "DOP"
+) {
+  const assets = totalBankBalance(bankAccounts, targetCurrency)
+  const liabilities = totalDebt(debts, targetCurrency)
+  return {
+    assets,
+    liabilities,
+    netWorth: assets - liabilities,
+  }
+}
+
+export function getMonthlyTrends(
+  transactions: Transaction[],
+  targetCurrency: string = "DOP"
+) {
+  // Agrupar los últimos 6 meses
+  const monthsMap: Record<string, { monthLabel: string; income: number; expense: number }> = {}
+  const now = new Date()
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+    const monthName = d.toLocaleDateString("es-DO", { month: "short" })
+    monthsMap[key] = { monthLabel: monthName, income: 0, expense: 0 }
+  }
+
+  for (const t of transactions) {
+    const d = new Date(t.occurredAt)
+    if (isNaN(d.getTime())) continue
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+    if (monthsMap[key]) {
+      const converted = convertCurrency(t.amount, t.currency, targetCurrency)
+      if (t.type === "income") {
+        monthsMap[key].income += converted
+      } else if (t.type === "expense" && t.category !== "transferencia") {
+        monthsMap[key].expense += converted
+      }
+    }
+  }
+
+  return Object.values(monthsMap)
+}
+

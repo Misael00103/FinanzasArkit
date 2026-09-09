@@ -24,3 +24,52 @@ export function formatMoney(amount: number, currency: string = "DOP") {
   }).format(Number.isFinite(amount) ? amount : 0)
   return `${c.symbol} ${formatted}`
 }
+
+export const LABEL_MAP: Record<string, string> = {
+  // Presets de Fechas
+  este_mes: "Este Mes",
+  "30_dias": "Últimos 30 días",
+  este_ano: "Este Año",
+  todo: "Todo el Historial",
+  custom: "Rango Personalizado",
+
+  // Tipos de Cuenta Bancaria
+  cuenta_ahorro: "Cuenta de Ahorros",
+  cuenta_corriente: "Cuenta Corriente",
+  tarjeta_credito: "Tarjeta de Crédito",
+  efectivo: "Efectivo / Caja",
+  inversion: "Inversión / Fondo",
+  otro: "Otra Cuenta",
+
+  // Categorías de Transacción
+  entrada: "Entrada / Ingreso",
+  ganancia_negocio: "Ganancia de Negocio",
+  gasto: "Gasto General",
+  gasto_hormiga: "Gastos Hormiga",
+  servicio: "Servicios y Facturas",
+  comida: "Comida y Restaurantes",
+  transporte: "Transporte y Vehículo",
+  transferencia: "Transferencia Interna",
+  general: "General",
+
+  // Deudas
+  deuda: "Deuda Personal",
+  pasivo: "Pasivo Financiero",
+
+  // Frecuencias
+  semanal: "Semanal",
+  quincenal: "Quincenal",
+  mensual: "Mensual",
+  anual: "Anual",
+}
+
+export function formatLabel(key?: string | null): string {
+  if (!key) return ""
+  const cleanKey = String(key).trim().toLowerCase()
+  if (LABEL_MAP[cleanKey]) {
+    return LABEL_MAP[cleanKey]
+  }
+  return cleanKey
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+}

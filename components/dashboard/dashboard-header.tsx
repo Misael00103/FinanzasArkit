@@ -17,7 +17,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ProfilePanel } from "@/components/dashboard/profile-panel"
 import type { UserProfile, Settings } from "@/lib/finance"
-import { LogOut, Sun, Moon, User } from "lucide-react"
+import { LogOut, Sun, Moon, User, PanelLeft } from "lucide-react"
 
 export function DashboardHeader({
   userName,
@@ -29,6 +29,8 @@ export function DashboardHeader({
   transactionsCount = 0,
   goalsCount = 0,
   onCurrencyChange,
+  isSidebarCollapsed,
+  onToggleSidebar,
 }: {
   userName: string
   userEmail?: string
@@ -39,6 +41,8 @@ export function DashboardHeader({
   transactionsCount?: number
   goalsCount?: number
   onCurrencyChange: (c: string) => void
+  isSidebarCollapsed?: boolean
+  onToggleSidebar?: () => void
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -81,6 +85,17 @@ export function DashboardHeader({
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3">
           {/* Brand Logo & Name */}
           <div className="flex items-center gap-3">
+            {onToggleSidebar && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onToggleSidebar}
+                className="hidden md:flex h-9 w-9 text-muted-foreground hover:text-foreground rounded-xl"
+                title={isSidebarCollapsed ? "Mostrar Menú Lateral" : "Esconder Menú Lateral"}
+              >
+                <PanelLeft className="h-5 w-5" />
+              </Button>
+            )}
             <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden bg-secondary/50">
               <img
                 src="/logo-nuevo-removebg-preview.png"

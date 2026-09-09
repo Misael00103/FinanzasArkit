@@ -7,7 +7,7 @@ import {
   deleteDebt,
   registerDebtPayment,
 } from "@/app/actions/debts"
-import { formatMoney, CURRENCIES } from "@/lib/config"
+import { formatMoney, formatLabel, CURRENCIES } from "@/lib/config"
 import { remaining, totalDebt, convertCurrency, type Debt } from "@/lib/finance"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -289,7 +289,7 @@ function DebtCard({ debt, currency }: { debt: Debt; currency: string }) {
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <Badge variant={isPasivo ? "secondary" : "outline"} className="text-[10px] uppercase font-bold tracking-wider">
-              {debt.type}
+              {formatLabel(debt.type)}
             </Badge>
             <Badge variant="secondary" className="font-mono text-[10px]">
               {debt.currency}

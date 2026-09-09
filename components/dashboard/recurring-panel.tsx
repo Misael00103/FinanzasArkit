@@ -7,7 +7,7 @@ import {
   deleteRecurring,
   toggleRecurring,
 } from "@/app/actions/recurring"
-import { formatMoney, CURRENCIES } from "@/lib/config"
+import { formatMoney, formatLabel, CURRENCIES } from "@/lib/config"
 import { toMonthly, convertCurrency, type Recurring } from "@/lib/finance"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -308,8 +308,8 @@ function RecurringCard({ recurring, currency }: { recurring: Recurring; currency
               )}
               <span className="truncate">{recurring.description}</span>
             </CardTitle>
-            <p className="mt-0.5 text-xs text-muted-foreground capitalize font-medium">
-              {recurring.frequency} {recurring.dayOfMonth ? `· Día ${recurring.dayOfMonth}` : ""}
+            <p className="mt-0.5 text-xs text-muted-foreground font-medium">
+              {formatLabel(recurring.frequency)} {recurring.dayOfMonth ? `· Día ${recurring.dayOfMonth}` : ""}
             </p>
           </div>
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AppSidebar, type TabValue } from "@/components/dashboard/app-sidebar"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { SummaryCards } from "@/components/dashboard/summary-cards"
 import { BankAccountsPanel } from "@/components/dashboard/bank-accounts-panel"
@@ -19,15 +19,6 @@ import type {
   Settings,
   UserProfile,
 } from "@/lib/finance"
-import {
-  LayoutDashboard,
-  Landmark,
-  CreditCard,
-  ArrowLeftRight,
-  CalendarClock,
-  Target,
-  Sparkles,
-} from "lucide-react"
 
 type Props = {
   userName: string
@@ -40,16 +31,6 @@ type Props = {
   settings: Settings
 }
 
-const TABS = [
-  { value: "resumen", label: "Resumen", icon: LayoutDashboard },
-  { value: "cuentas", label: "Cuentas", icon: Landmark },
-  { value: "deudas", label: "Deudas", icon: CreditCard },
-  { value: "movimientos", label: "Movimientos", icon: ArrowLeftRight },
-  { value: "fijos", label: "Fijos", icon: CalendarClock },
-  { value: "metas", label: "Metas", icon: Target },
-  { value: "asistente", label: "Asistente", icon: Sparkles },
-]
-
 export function Dashboard({
   userName,
   user,
@@ -61,6 +42,8 @@ export function Dashboard({
   settings,
 }: Props) {
   const [currency, setCurrency] = useState(settings.displayCurrency)
+  const [activeTab, setActiveTab] = useState<TabValue>("resumen")
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   const userProfile: UserProfile = user || {
     id: "user-id",
@@ -68,43 +51,47 @@ export function Dashboard({
     name: userName || "Misael",
   }
 
-  return (
-    <div className="relative min-h-svh bg-background/95 overflow-hidden">
-      {/* Ambient background glow elements for premium look */}
-      <div className="absolute top-10 left-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 h-96 w-96 rounded-full bg-accent/5 blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/3 h-80 w-80 rounded-full bg-indigo-500/[0.03] blur-3xl pointer-events-none" />
+  const toggleSidebar = () => setIsSidebarCollapsed((prev) => !prev)
 
-      <DashboardHeader
-        userName={userProfile.name}
-        userEmail={userProfile.email}
-        currency={currency}
-        user={userProfile}
-        settings={settings}
-        debtsCount={debts.length}
-        transactionsCount={transactions.length}
-        goalsCount={goals.length}
-        onCurrencyChange={setCurrency}
+  return (
+    <div className="flex min-h-svh bg-background/95">
+      {/* Ambient background glow elements */}
+      <div className="fixed top-10 left-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+      <div className="fixed bottom-10 right-10 h-96 w-96 rounded-full bg-accent/5 blur-3xl pointer-events-none" />
+
+      {/* Left Sidebar Component */}
+      <AppSidebar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        userProfile={userProfile}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={toggleSidebar}
+        counts={{
+          accountsCount: bankAccounts.length,
+          debtsCount: debts.length,
+          transactionsCount: transactions.length,
+          goalsCount: goals.length,
+        }}
       />
 
-      <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6">
-        <Tabs defaultValue="resumen" className="w-full">
-          <div className="-mx-4 mb-6 overflow-x-auto px-4 no-scrollbar">
-            <TabsList className="inline-flex h-auto w-auto justify-start gap-1 bg-card/60 border border-border/50 p-1 shadow-sm rounded-xl backdrop-blur-md">
-              {TABS.map((t) => (
-                <TabsTrigger
-                  key={t.value}
-                  value={t.value}
-                  className="flex items-center gap-1.5 whitespace-nowrap px-4 py-2 text-sm rounded-lg font-medium transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-                >
-                  <t.icon className="h-4 w-4" />
-                  {t.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
+      {/* Main Content Body */}
+      <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
+        <DashboardHeader
+          userName={userProfile.name}
+          userEmail={userProfile.email}
+          currency={currency}
+          user={userProfile}
+          settings={settings}
+          debtsCount={debts.length}
+          transactionsCount={transactions.length}
+          goalsCount={goals.length}
+          onCurrencyChange={setCurrency}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={toggleSidebar}
+        />
 
-          <TabsContent value="resumen" className="mt-0">
+        <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto pb-20">
+          {activeTab === "resumen" && (
             <SummaryCards
               debts={debts}
               transactions={transactions}
@@ -113,36 +100,36 @@ export function Dashboard({
               bankAccounts={bankAccounts}
               currency={currency}
             />
-          </TabsContent>
+          )}
 
-          <TabsContent value="cuentas" className="mt-0">
+          {activeTab === "cuentas" && (
             <BankAccountsPanel
               bankAccounts={bankAccounts}
               currency={currency}
             />
-          </TabsContent>
+          )}
 
-          <TabsContent value="deudas" className="mt-0">
+          {activeTab === "deudas" && (
             <DebtsPanel debts={debts} currency={currency} />
-          </TabsContent>
+          )}
 
-          <TabsContent value="movimientos" className="mt-0">
+          {activeTab === "movimientos" && (
             <TransactionsPanel
               transactions={transactions}
               bankAccounts={bankAccounts}
               currency={currency}
             />
-          </TabsContent>
+          )}
 
-          <TabsContent value="fijos" className="mt-0">
+          {activeTab === "fijos" && (
             <RecurringPanel recurring={recurring} currency={currency} />
-          </TabsContent>
+          )}
 
-          <TabsContent value="metas" className="mt-0">
+          {activeTab === "metas" && (
             <GoalsPanel goals={goals} currency={currency} />
-          </TabsContent>
+          )}
 
-          <TabsContent value="asistente" className="mt-0">
+          {activeTab === "asistente" && (
             <AssistantPanel
               debts={debts}
               transactions={transactions}
@@ -151,9 +138,10 @@ export function Dashboard({
               bankAccounts={bankAccounts}
               currency={currency}
             />
-          </TabsContent>
-        </Tabs>
-      </main>
+          )}
+        </main>
+      </div>
     </div>
   )
 }
+
