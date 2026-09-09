@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { SummaryCards } from "@/components/dashboard/summary-cards"
+import { BankAccountsPanel } from "@/components/dashboard/bank-accounts-panel"
 import { DebtsPanel } from "@/components/dashboard/debts-panel"
 import { TransactionsPanel } from "@/components/dashboard/transactions-panel"
 import { RecurringPanel } from "@/components/dashboard/recurring-panel"
@@ -14,11 +15,13 @@ import type {
   Transaction,
   Recurring,
   Goal,
+  BankAccount,
   Settings,
   UserProfile,
 } from "@/lib/finance"
 import {
   LayoutDashboard,
+  Landmark,
   CreditCard,
   ArrowLeftRight,
   CalendarClock,
@@ -29,6 +32,7 @@ import {
 type Props = {
   userName: string
   user?: UserProfile
+  bankAccounts?: BankAccount[]
   debts: Debt[]
   transactions: Transaction[]
   recurring: Recurring[]
@@ -38,6 +42,7 @@ type Props = {
 
 const TABS = [
   { value: "resumen", label: "Resumen", icon: LayoutDashboard },
+  { value: "cuentas", label: "Cuentas", icon: Landmark },
   { value: "deudas", label: "Deudas", icon: CreditCard },
   { value: "movimientos", label: "Movimientos", icon: ArrowLeftRight },
   { value: "fijos", label: "Fijos", icon: CalendarClock },
@@ -48,6 +53,7 @@ const TABS = [
 export function Dashboard({
   userName,
   user,
+  bankAccounts = [],
   debts,
   transactions,
   recurring,
@@ -104,6 +110,14 @@ export function Dashboard({
               transactions={transactions}
               recurring={recurring}
               goals={goals}
+              bankAccounts={bankAccounts}
+              currency={currency}
+            />
+          </TabsContent>
+
+          <TabsContent value="cuentas" className="mt-0">
+            <BankAccountsPanel
+              bankAccounts={bankAccounts}
               currency={currency}
             />
           </TabsContent>
@@ -115,6 +129,7 @@ export function Dashboard({
           <TabsContent value="movimientos" className="mt-0">
             <TransactionsPanel
               transactions={transactions}
+              bankAccounts={bankAccounts}
               currency={currency}
             />
           </TabsContent>
@@ -133,6 +148,7 @@ export function Dashboard({
               transactions={transactions}
               recurring={recurring}
               goals={goals}
+              bankAccounts={bankAccounts}
               currency={currency}
             />
           </TabsContent>

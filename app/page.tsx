@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/session"
+import { getBankAccounts } from "@/app/actions/bank-accounts"
 import { getDebts } from "@/app/actions/debts"
 import { getTransactions } from "@/app/actions/transactions"
 import { getRecurring } from "@/app/actions/recurring"
@@ -11,7 +12,8 @@ export default async function HomePage() {
   const session = await getSession()
   if (!session?.user) redirect("/sign-in")
 
-  const [debts, transactions, recurring, goals, settings] = await Promise.all([
+  const [bankAccounts, debts, transactions, recurring, goals, settings] = await Promise.all([
+    getBankAccounts(),
     getDebts(),
     getTransactions(),
     getRecurring(),
@@ -34,6 +36,7 @@ export default async function HomePage() {
     <Dashboard
       userName={userProfile.name}
       user={userProfile}
+      bankAccounts={bankAccounts}
       debts={debts}
       transactions={transactions}
       recurring={recurring}

@@ -13,6 +13,21 @@ export type Debt = {
   createdAt: Date | string
 }
 
+export type BankAccount = {
+  id: number
+  userId: string
+  bankName: string | null // Ej. "Banco Popular", "BHD León", "ScotiaBank", "Efectivo"
+  name: string // Ej. "Nómina", "Ahorros USD", "Tarjeta Gold"
+  type: string // "cuenta_ahorro" | "cuenta_corriente" | "tarjeta_credito" | "efectivo" | "inversion" | "otro"
+  balance: number
+  currency: string
+  accountNumber: string | null
+  color: string | null
+  notes: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
 export type Transaction = {
   id: number
   type: string
@@ -20,6 +35,7 @@ export type Transaction = {
   description: string
   amount: number
   currency: string
+  bankAccountId?: number | null
   business: string | null
   isAnt: boolean
   occurredAt: Date | string
@@ -159,3 +175,14 @@ export function summarize(
     projectedBalance: income + fixedIncome - expenses - fixedExpenses,
   }
 }
+
+export function totalBankBalance(
+  bankAccounts: BankAccount[],
+  targetCurrency: string = "DOP"
+): number {
+  return bankAccounts.reduce(
+    (sum, acc) => sum + convertCurrency(acc.balance, acc.currency, targetCurrency),
+    0
+  )
+}
+

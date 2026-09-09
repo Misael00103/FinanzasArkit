@@ -6,8 +6,9 @@ import {
   updateTransaction,
   deleteTransaction,
 } from "@/app/actions/transactions"
+import { transferBetweenAccounts } from "@/app/actions/bank-accounts"
 import { formatMoney, CURRENCIES } from "@/lib/config"
-import { convertCurrency, type Transaction } from "@/lib/finance"
+import { convertCurrency, type Transaction, type BankAccount } from "@/lib/finance"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,7 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Trash2, ArrowUpRight, ArrowDownRight, Bug, Edit2 } from "lucide-react"
+import { Plus, Trash2, ArrowUpRight, ArrowDownRight, Bug, Edit2, Landmark, ArrowRightLeft, Building2 } from "lucide-react"
 import { toast } from "sonner"
 
 const CATEGORIES = [
@@ -40,20 +41,49 @@ const CATEGORIES = [
   { value: "servicio", label: "Servicio / Factura", type: "expense" },
   { value: "comida", label: "Comida", type: "expense" },
   { value: "transporte", label: "Transporte", type: "expense" },
+  { value: "transferencia", label: "Transferencia de cuenta", type: "expense" },
 ]
+
+function AccountOptionItem({ acc }: { acc: BankAccount }) {
+  return (
+    <div className="flex flex-col gap-0.5 py-1 text-left w-full min-w-0">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-bold text-foreground text-sm truncate flex items-center gap-1.5">
+          <Building2 className="h-3.5 w-3.5 text-primary shrink-0" />
+          {acc.bankName || "General"} · {acc.name}
+        </span>
+        <span className="font-mono text-xs font-black text-emerald-600 dark:text-emerald-400 shrink-0 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+          {formatMoney(acc.balance, acc.currency)}
+        </span>
+      </div>
+      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+        <span className="capitalize">{acc.type.replace(/_/g, " ")}</span>
+        {acc.accountNumber && <span className="font-mono text-[10px]">{acc.accountNumber}</span>}
+      </div>
+    </div>
+  )
+}
 
 export function TransactionsPanel({
   transactions,
+  bankAccounts = [],
   currency,
 }: {
   transactions: Transaction[]
+  bankAccounts?: BankAccount[]
   currency: string
 }) {
   const [open, setOpen] = useState(false)
+  const [transferOpen, setTransferOpen] = useState(false)
   const [category, setCategory] = useState("gasto")
   const [isAnt, setIsAnt] = useState(false)
   const [pending, startTransition] = useTransition()
   const [txCurrency, setTxCurrency] = useState(currency)
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("none")
+
+  // Transfer states
+  const [fromAccount, setFromAccount] = useState<string>("")
+  const [toAccount, setToAccount] = useState<string>("")
 
   useEffect(() => {
     setTxCurrency(currency)
@@ -88,6 +118,7 @@ export function TransactionsPanel({
         description,
         amount,
         currency: txCurrency,
+        bankAccountId: selectedAccountId !== "none" ? Number(selectedAccountId) : null,
         business: String(formData.get("business") || "") || undefined,
         isAnt: category === "gasto_hormiga" ? true : isAnt,
         occurredAt: String(formData.get("occurredAt") || "") || undefined,
@@ -96,103 +127,227 @@ export function TransactionsPanel({
       setOpen(false)
       setIsAnt(false)
       setCategory("gasto")
+      setSelectedAccountId("none")
+    })
+  }
+
+  function handleQuickTransfer(formData: FormData) {
+    const fromId = Number(fromAccount)
+    const toId = Number(toAccount)
+    const amount = Number(formData.get("amount") || 0)
+    const notes = String(formData.get("notes") || "").trim()
+
+    if (!fromId || !toId) {
+      toast.error("Selecciona cuenta de origen y destino")
+      return
+    }
+
+    startTransition(async () => {
+      try {
+        await transferBetweenAccounts({
+          fromAccountId: fromId,
+          toAccountId: toId,
+          amount,
+          currency,
+          notes,
+        })
+        toast.success("Transferencia realizada con éxito")
+        setTransferOpen(false)
+        setFromAccount("")
+        setToAccount("")
+      } catch (err: any) {
+        toast.error(err.message || "Error al realizar la transferencia")
+      }
     })
   }
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
           Historial de Movimientos
           <Badge variant="secondary" className="font-mono text-xs">
             {transactions.length}
           </Badge>
         </h3>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger render={
-            <Button className="gap-2 shadow-sm">
-              <Plus className="h-4 w-4" />
-              Nuevo Movimiento
-            </Button>
-          } />
-          <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold">Registrar Movimiento</DialogTitle>
-            </DialogHeader>
-            <form action={handleCreate} className="flex flex-col gap-4 pt-2">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="category">Categoría</Label>
-                <Select value={category} onValueChange={(val) => val && setCategory(val)}>
-                  <SelectTrigger id="category">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="description">Descripción *</Label>
-                <Input id="description" name="description" placeholder="Ej. Café, Salario, Venta producto..." required />
-              </div>
+        <div className="flex items-center gap-2">
+          {bankAccounts.length >= 2 && (
+            <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+              <DialogTrigger render={
+                <Button variant="outline" className="gap-2 shadow-sm">
+                  <ArrowRightLeft className="h-4 w-4" />
+                  Transferir
+                </Button>
+              } />
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+                    <ArrowRightLeft className="h-5 w-5 text-primary" />
+                    Transferencia entre Cuentas
+                  </DialogTitle>
+                </DialogHeader>
+                <form action={handleQuickTransfer} className="flex flex-col gap-4 pt-2">
+                  <div className="flex flex-col gap-1.5">
+                    <Label>Cuenta de Origen (De cuál cuenta SALE el dinero) *</Label>
+                    <Select value={fromAccount} onValueChange={(val) => val && setFromAccount(val)}>
+                      <SelectTrigger className="w-full h-auto min-h-11 py-2 px-3">
+                        <SelectValue placeholder="Seleccionar cuenta de origen..." />
+                      </SelectTrigger>
+                      <SelectContent className="w-full min-w-[320px] max-w-[95vw]">
+                        {bankAccounts.map((acc) => (
+                          <SelectItem key={acc.id} value={acc.id.toString()} className="py-2">
+                            <AccountOptionItem acc={acc} />
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="flex flex-col gap-1.5 col-span-1 sm:col-span-2">
-                  <Label htmlFor="amount">Monto *</Label>
-                  <Input id="amount" name="amount" type="number" step="0.01" min="0" required />
-                </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label>Cuenta de Destino (A cuál cuenta ENTRA el dinero) *</Label>
+                    <Select value={toAccount} onValueChange={(val) => val && setToAccount(val)}>
+                      <SelectTrigger className="w-full h-auto min-h-11 py-2 px-3">
+                        <SelectValue placeholder="Seleccionar cuenta de destino..." />
+                      </SelectTrigger>
+                      <SelectContent className="w-full min-w-[320px] max-w-[95vw]">
+                        {bankAccounts
+                          .filter((acc) => acc.id.toString() !== fromAccount)
+                          .map((acc) => (
+                            <SelectItem key={acc.id} value={acc.id.toString()} className="py-2">
+                              <AccountOptionItem acc={acc} />
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="transferAmount">Monto a Transferir *</Label>
+                    <Input id="transferAmount" name="amount" type="number" step="0.01" min="0.01" required placeholder="0.00" />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="transferNotes">Notas / Concepto (Opcional)</Label>
+                    <Input id="transferNotes" name="notes" placeholder="Ej. Paso a fondo de ahorro o tarjeta" />
+                  </div>
+
+                  <DialogFooter className="pt-2">
+                    <Button type="submit" disabled={pending} className="w-full">
+                      Realizar Transferencia
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger render={
+              <Button className="gap-2 shadow-sm">
+                <Plus className="h-4 w-4" />
+                Nuevo Movimiento
+              </Button>
+            } />
+            <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-bold">Registrar Movimiento</DialogTitle>
+              </DialogHeader>
+              <form action={handleCreate} className="flex flex-col gap-4 pt-2">
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="currency">Moneda</Label>
-                  <Select value={txCurrency} onValueChange={(val) => val && setTxCurrency(val)}>
-                    <SelectTrigger id="currency">
+                  <Label htmlFor="category">Categoría</Label>
+                  <Select value={category} onValueChange={(val) => val && setCategory(val)}>
+                    <SelectTrigger id="category" className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.keys(CURRENCIES).map((code) => (
-                        <SelectItem key={code} value={code}>
-                          {code}
+                      {CATEGORIES.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="occurredAt">Fecha del Movimiento</Label>
-                <Input id="occurredAt" name="occurredAt" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
-              </div>
-
-              {isIncome && (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="business">Negocio Asociado (Opcional)</Label>
-                  <Input id="business" name="business" placeholder="Nombre del negocio" />
+                  <Label htmlFor="description">Descripción *</Label>
+                  <Input id="description" name="description" placeholder="Ej. Café, Salario, Venta producto..." required />
                 </div>
-              )}
 
-              {!isIncome && category !== "gasto_hormiga" && (
-                <label className="flex items-center gap-2 text-sm text-foreground pt-1 cursor-pointer">
-                  <Checkbox
-                    checked={isAnt}
-                    onCheckedChange={(v) => setIsAnt(Boolean(v))}
-                  />
-                  Marcar como gasto hormiga
-                </label>
-              )}
+                {/* Cuenta de Banco Seleccionable */}
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="bankAccountId">Cuenta de Banco (De dónde sale/entra el dinero)</Label>
+                  <Select value={selectedAccountId} onValueChange={(val) => val && setSelectedAccountId(val)}>
+                    <SelectTrigger id="bankAccountId" className="w-full h-auto min-h-11 py-2 px-3">
+                      <SelectValue placeholder="Seleccionar cuenta..." />
+                    </SelectTrigger>
+                    <SelectContent className="w-full min-w-[320px] max-w-[95vw]">
+                      <SelectItem value="none" className="py-2">
+                        <span className="text-muted-foreground font-medium">Sin vincular a cuenta específica (General)</span>
+                      </SelectItem>
+                      {bankAccounts.map((acc) => (
+                        <SelectItem key={acc.id} value={acc.id.toString()} className="py-2">
+                          <AccountOptionItem acc={acc} />
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <DialogFooter className="pt-2">
-                <Button type="submit" disabled={pending} className="w-full">
-                  Guardar Movimiento
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-1.5 col-span-1 sm:col-span-2">
+                    <Label htmlFor="amount">Monto *</Label>
+                    <Input id="amount" name="amount" type="number" step="0.01" min="0" required />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="currency">Moneda</Label>
+                    <Select value={txCurrency} onValueChange={(val) => val && setTxCurrency(val)}>
+                      <SelectTrigger id="currency" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.keys(CURRENCIES).map((code) => (
+                          <SelectItem key={code} value={code}>
+                            {code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="occurredAt">Fecha del Movimiento</Label>
+                  <Input id="occurredAt" name="occurredAt" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
+                </div>
+
+                {isIncome && (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="business">Negocio Asociado (Opcional)</Label>
+                    <Input id="business" name="business" placeholder="Nombre del negocio" />
+                  </div>
+                )}
+
+                {!isIncome && category !== "gasto_hormiga" && (
+                  <label className="flex items-center gap-2 text-sm text-foreground pt-1 cursor-pointer">
+                    <Checkbox
+                      checked={isAnt}
+                      onCheckedChange={(v) => setIsAnt(Boolean(v))}
+                    />
+                    Marcar como gasto hormiga
+                  </label>
+                )}
+
+                <DialogFooter className="pt-2">
+                  <Button type="submit" disabled={pending} className="w-full">
+                    Guardar Movimiento
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {transactions.length === 0 ? (
@@ -216,7 +371,7 @@ export function TransactionsPanel({
               </h4>
               <div className="flex flex-col gap-2">
                 {txs.map((t) => (
-                  <TxRow key={t.id} tx={t} currency={currency} />
+                  <TxRow key={t.id} tx={t} bankAccounts={bankAccounts} currency={currency} />
                 ))}
               </div>
             </div>
@@ -227,7 +382,15 @@ export function TransactionsPanel({
   )
 }
 
-function TxRow({ tx, currency }: { tx: Transaction; currency: string }) {
+function TxRow({
+  tx,
+  bankAccounts = [],
+  currency,
+}: {
+  tx: Transaction
+  bankAccounts?: BankAccount[]
+  currency: string
+}) {
   const [pending, startTransition] = useTransition()
   const [editOpen, setEditOpen] = useState(false)
 
@@ -237,6 +400,9 @@ function TxRow({ tx, currency }: { tx: Transaction; currency: string }) {
   const [editType, setEditType] = useState<"income" | "expense">(tx.type as "income" | "expense")
   const [editCategory, setEditCategory] = useState(tx.category || "gasto")
   const [editCurrency, setEditCurrency] = useState(tx.currency || "DOP")
+  const [editAccountId, setEditAccountId] = useState<string>(
+    tx.bankAccountId ? tx.bankAccountId.toString() : "none"
+  )
   const [editBusiness, setEditBusiness] = useState(tx.business || "")
   const [editIsAnt, setEditIsAnt] = useState(tx.isAnt || false)
   const [editOccurredAt, setEditOccurredAt] = useState(
@@ -244,6 +410,7 @@ function TxRow({ tx, currency }: { tx: Transaction; currency: string }) {
   )
 
   const isIncome = tx.type === "income"
+  const linkedAccount = bankAccounts.find((a) => a.id === tx.bankAccountId)
 
   function handleEdit(e: React.FormEvent) {
     e.preventDefault()
@@ -258,6 +425,7 @@ function TxRow({ tx, currency }: { tx: Transaction; currency: string }) {
         type: editType,
         category: editCategory,
         currency: editCurrency,
+        bankAccountId: editAccountId !== "none" ? Number(editAccountId) : null,
         business: editBusiness.trim() || undefined,
         isAnt: editCategory === "gasto_hormiga" ? true : editIsAnt,
         occurredAt: editOccurredAt,
@@ -294,13 +462,19 @@ function TxRow({ tx, currency }: { tx: Transaction; currency: string }) {
 
         {/* Text Info */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center flex-wrap gap-1.5">
             <p className="truncate text-sm font-semibold text-foreground">
               {tx.description}
             </p>
             {tx.isAnt && (
               <Badge variant="secondary" className="h-5 shrink-0 px-1.5 text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20">
                 hormiga
+              </Badge>
+            )}
+            {linkedAccount && (
+              <Badge variant="outline" className="h-5 shrink-0 px-1.5 text-[10px] gap-1 bg-primary/5 border-primary/20 text-primary">
+                <Building2 className="h-3 w-3" />
+                {linkedAccount.bankName ? `${linkedAccount.bankName} · ` : ""}{linkedAccount.name}
               </Badge>
             )}
           </div>
@@ -354,7 +528,7 @@ function TxRow({ tx, currency }: { tx: Transaction; currency: string }) {
                   const catObj = CATEGORIES.find(c => c.value === val)
                   if (catObj) setEditType(catObj.type as "income" | "expense")
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -376,6 +550,25 @@ function TxRow({ tx, currency }: { tx: Transaction; currency: string }) {
                 />
               </div>
 
+              <div className="flex flex-col gap-1.5">
+                <Label>Cuenta de Banco (Origen / Destino)</Label>
+                <Select value={editAccountId} onValueChange={(val) => val && setEditAccountId(val)}>
+                  <SelectTrigger className="w-full h-auto min-h-11 py-2 px-3">
+                    <SelectValue placeholder="Seleccionar cuenta..." />
+                  </SelectTrigger>
+                  <SelectContent className="w-full min-w-[320px] max-w-[95vw]">
+                    <SelectItem value="none" className="py-2">
+                      <span className="text-muted-foreground font-medium">Sin vincular a cuenta específica (General)</span>
+                    </SelectItem>
+                    {bankAccounts.map((acc) => (
+                      <SelectItem key={acc.id} value={acc.id.toString()} className="py-2">
+                        <AccountOptionItem acc={acc} />
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="flex flex-col gap-1.5 col-span-1 sm:col-span-2">
                   <Label>Monto *</Label>
@@ -391,7 +584,7 @@ function TxRow({ tx, currency }: { tx: Transaction; currency: string }) {
                 <div className="flex flex-col gap-1.5">
                   <Label>Moneda</Label>
                   <Select value={editCurrency} onValueChange={(val) => val && setEditCurrency(val)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

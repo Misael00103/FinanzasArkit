@@ -1,6 +1,6 @@
 "use server"
 
-import { convertCurrency, type Debt, type Transaction, type Recurring, type Goal } from "@/lib/finance"
+import { convertCurrency, type Debt, type Transaction, type Recurring, type Goal, type BankAccount } from "@/lib/finance"
 
 export type ChatMessage = {
   role: "user" | "model"
@@ -13,6 +13,7 @@ export async function askGemini({
   transactions,
   recurring,
   goals,
+  bankAccounts = [],
   currency,
   userApiKey,
 }: {
@@ -21,6 +22,7 @@ export async function askGemini({
   transactions: Transaction[]
   recurring: Recurring[]
   goals: Goal[]
+  bankAccounts?: BankAccount[]
   currency: string
   userApiKey?: string
 }) {
@@ -40,6 +42,18 @@ export async function askGemini({
         `- ${d.name}: Pendiente ${d.currency} ${(d.totalAmount - d.paidAmount).toFixed(2)} (Mínimo: ${d.currency} ${d.minimumPayment.toFixed(2)}, Interés: ${d.interestRate}% anual, Día pago: ${d.dueDay || "N/A"})`
     )
     .join("\n")
+
+  const accountsList = bankAccounts
+    .map(
+      (a) =>
+        `- ${a.name} (${a.type.replace(/_/g, " ")}): Balance ${a.currency} ${a.balance.toFixed(2)}`
+    )
+    .join("\n")
+
+  const totalBankBalanceVal = bankAccounts.reduce(
+    (sum, a) => sum + convertCurrency(a.balance, a.currency, currency),
+    0
+  )
 
   const goalsList = goals
     .map(
@@ -70,6 +84,9 @@ Ayudas al usuario a optimizar sus finanzas personales, reducir deudas e incremen
 Aquí está el resumen financiero actual del usuario:
 - Moneda preferida: ${currency}
 
+CUENTAS Y BANCOS (Total disponible en cuentas: ${currency} ${totalBankBalanceVal.toFixed(2)}):
+${accountsList || "No tiene cuentas bancarias registradas."}
+
 DEUDAS:
 ${debtsList || "No tiene deudas registradas."}
 Total deudas pendientes: ${currency} ${totalDebtAmount.toFixed(2)}
@@ -85,7 +102,7 @@ ${antList || "No tiene gastos hormiga registrados."}
 
 REGLAS IMPORTANTES:
 1. Responde de manera clara, empática y práctica en español.
-2. Da consejos accionables basados en sus deudas, ingresos y gastos hormiga.
+2. Da consejos accionables basados en sus deudas, dinero disponible en sus cuentas bancarias, ingresos y gastos hormiga.
 3. Si el usuario te pregunta sobre planes de deudas, sugiere usar el método Avalancha o Bola de Nieve (haz referencia a los datos de sus deudas reales para explicar cómo funcionaría).
 4. Usa formato Markdown con negritas, listas y secciones cortas para facilitar la lectura. No uses encabezados h1 ni h2 muy grandes; prefiere negrita o h3/h4.`
 

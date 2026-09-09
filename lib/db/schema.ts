@@ -104,6 +104,23 @@ export const debts = pgTable("debts", {
   createdAt: timestamp("createdAt").notNull().defaultNow(),
 })
 
+// Cuentas de Banco y Cuentas Financieras
+export const bankAccounts = pgTable("bank_accounts", {
+  id: serial("id").primaryKey(),
+  userId: text("userId").notNull(),
+  bankName: text("bankName"), // Ej. "Banco Popular", "BHD León", "ScotiaBank", "Efectivo"
+  name: text("name").notNull(), // Ej. "Nómina", "Ahorros USD", "Tarjeta Gold"
+  // "cuenta_ahorro" | "cuenta_corriente" | "tarjeta_credito" | "efectivo" | "inversion" | "otro"
+  type: text("type").notNull().default("cuenta_ahorro"),
+  balance: numeric("balance", { precision: 14, scale: 2 }).notNull().default("0"),
+  currency: text("currency").notNull().default("DOP"),
+  accountNumber: text("accountNumber"),
+  color: text("color").default("#3b82f6"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+})
+
 // Movimientos: entradas, gastos, gastos hormiga, ganancias de negocio
 export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
@@ -115,6 +132,8 @@ export const transactions = pgTable("transactions", {
   description: text("description").notNull(),
   amount: numeric("amount", { precision: 14, scale: 2 }).notNull().default("0"),
   currency: text("currency").notNull().default("DOP"),
+  // cuenta de banco de donde se debita/acredita
+  bankAccountId: integer("bankAccountId").references(() => bankAccounts.id, { onDelete: "set null" }),
   // negocio asociado (para ganancias por negocio)
   business: text("business"),
   isAnt: boolean("isAnt").notNull().default(false),
@@ -156,3 +175,4 @@ export const goals = pgTable("goals", {
   notes: text("notes"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
 })
+

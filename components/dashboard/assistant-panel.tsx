@@ -10,6 +10,7 @@ import {
   type Transaction,
   type Recurring,
   type Goal,
+  type BankAccount,
 } from "@/lib/finance"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -55,12 +56,14 @@ export function AssistantPanel({
   transactions,
   recurring,
   goals,
+  bankAccounts = [],
   currency,
 }: {
   debts: Debt[]
   transactions: Transaction[]
   recurring: Recurring[]
   goals: Goal[]
+  bankAccounts?: BankAccount[]
   currency: string
 }) {
   // API Key state (local storage fallback)
@@ -121,6 +124,7 @@ export function AssistantPanel({
           transactions,
           recurring,
           goals,
+          bankAccounts,
           currency,
           userApiKey: apiKey || undefined,
         })

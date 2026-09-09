@@ -8,10 +8,12 @@ import {
   totalDebt,
   remaining,
   convertCurrency,
+  totalBankBalance,
   type Debt,
   type Transaction,
   type Recurring,
   type Goal,
+  type BankAccount,
 } from "@/lib/finance"
 import {
   TrendingUp,
@@ -20,6 +22,7 @@ import {
   Bug,
   PiggyBank,
   Scale,
+  Landmark,
 } from "lucide-react"
 
 export function SummaryCards({
@@ -27,20 +30,31 @@ export function SummaryCards({
   transactions,
   recurring,
   goals,
+  bankAccounts = [],
   currency,
 }: {
   debts: Debt[]
   transactions: Transaction[]
   recurring: Recurring[]
   goals: Goal[]
+  bankAccounts?: BankAccount[]
   currency: string
 }) {
   const s = summarize(transactions, recurring, currency)
   const deudaTotal = totalDebt(debts, currency)
+  const saldoCuentas = totalBankBalance(bankAccounts, currency)
   const metaTotal = goals.reduce((sum, g) => sum + convertCurrency(g.savedAmount, g.currency, currency), 0)
   const metaObjetivo = goals.reduce((sum, g) => sum + convertCurrency(g.targetAmount, g.currency, currency), 0)
 
   const stats = [
+    {
+      label: "Dinero en Cuentas",
+      value: saldoCuentas,
+      icon: Landmark,
+      tone: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-500/10 border-blue-500/20",
+      gradient: "from-blue-500/5 via-transparent to-transparent",
+    },
     {
       label: "Ingresos del mes",
       value: s.income,
